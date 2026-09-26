@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">insects</string>
+    <string name="label_name">ФИО:</string>
+    <string name="hint_name">Введите ФИО</string>
+    <string name="label_gender">Пол:</string>
+    <string name="radio_male">Мужской</string>
+    <string name="radio_female">Женский</string>
+    <string name="label_course">Курс:</string>
+    <string name="label_difficulty">Уровень сложности:</string>
+    <string name="label_birthdate">Дата рождения:</string>
+    <string name="label_zodiac">Ваш знак зодиака:</string>
+    <string name="button_submit">Сохранить и показать</string>
+    <string name="result_placeholder">Здесь появится результат...</string>
+
+    <string-array name="courses_array">
+        <item>1 курс</item>
+        <item>2 курс</item>
+        <item>3 курс</item>
+        <item>4 курс</item>
+        <item>5 курс</item>
+        <item>6 курс</item>
+    </string-array>
+</resources>
