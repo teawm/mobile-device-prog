@@ -23,8 +23,8 @@ class AuthorsFragment : Fragment() {
 
         // Создаем список авторов
         val authorsList = listOf(
-            Author("Звонков Иван Владимирович", android.R.drawable.ic_menu_myplaces),
-            Author("Малышев Никита Александрович", android.R.drawable.ic_menu_myplaces)
+            Author("Звонков Иван Владимирович", R.drawable.zodiac_leo),
+            Author("Малышев Никита Александрович", R.drawable.not_zodiac_just_me)
         )
 
         // Устанавливаем адаптер
