@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Настройки игры"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Скорость игры"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"/>
+        <SeekBar
+            android:id="@+id/seekBarSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:progress="5"/>
+        <TextView
+            android:id="@+id/textSpeedValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Макс. количество тараканов на экране"
+            android:textSize="16sp"/>
+        <SeekBar
+            android:id="@+id/seekBarMaxCockroaches"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="20"
+            android:progress="10"/>
+        <TextView
+            android:id="@+id/textCockroachesValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Интервал появления бонусов (сек)"
+            android:textSize="16sp"/>
+        <SeekBar
+            android:id="@+id/seekBarBonusInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="60"
+            android:progress="15"/>
+        <TextView
+            android:id="@+id/textBonusValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="15"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Длительность раунда (сек)"
+            android:textSize="16sp"/>
+        <SeekBar
+            android:id="@+id/seekBarRoundDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="300"
+            android:progress="60"/>
+        <TextView
+            android:id="@+id/textDurationValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="60"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/buttonSaveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Сохранить настройки"
+            android:layout_marginTop="16dp"/>
+
+    </LinearLayout>
+</ScrollView>
