@@ -21,16 +21,13 @@ class RegistrationFragment : Fragment() {
 
     private var selectedDate: Calendar = Calendar.getInstance()
 
-    // XML
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // создание View из XML-файла
         return inflater.inflate(R.layout.fragment_registration, container, false)
     }
 
-    // работа с элементами
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -46,11 +43,11 @@ class RegistrationFragment : Fragment() {
 
         calendarView.maxDate = System.currentTimeMillis()
 
-        textViewDifficultyValue.text = seekBarDifficulty.progress.toString()
+        textViewDifficultyValue.text = (seekBarDifficulty.progress + 1).toString()
 
         seekBarDifficulty.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                textViewDifficultyValue.text = progress.toString()
+                textViewDifficultyValue.text = (progress + 1).toString()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -62,7 +59,6 @@ class RegistrationFragment : Fragment() {
             Log.d("RegistrationFragment", "Выбрана дата: $formattedDate")
         }
 
-        //  "Сохранить и показать"
         buttonSubmit.setOnClickListener {
             val name = editTextName.text.toString().trim()
 
@@ -79,7 +75,7 @@ class RegistrationFragment : Fragment() {
 
             val course = spinnerCourse.selectedItem.toString()
 
-            val difficulty = seekBarDifficulty.progress
+            val difficulty = seekBarDifficulty.progress + 1
 
             val day = selectedDate.get(Calendar.DAY_OF_MONTH)
             val month = selectedDate.get(Calendar.MONTH) + 1
