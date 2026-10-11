@@ -140,6 +140,15 @@ class GameFragment : Fragment() {
         val newX = Random.nextFloat() * (gameField.width - bugSize)
         val newY = Random.nextFloat() * (gameField.height - bugSize)
 
+        val currentX = bugImage.x
+        val currentY = bugImage.y
+        val deltaX = newX - currentX
+        val deltaY = newY - currentY
+        val angle = Math.toDegrees(Math.atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
+
+        val rotationCorrection = 90f
+        bugImage.rotation = angle + rotationCorrection
+
         bugImage.animate()
             .x(newX)
             .y(newY)
