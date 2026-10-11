@@ -1,5 +1,7 @@
 package com.example.insects
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,6 +32,8 @@ class GameFragment : Fragment() {
     private var gameJob: Job? = null
     private var timerJob: Job? = null
 
+    private lateinit var prefs: SharedPreferences
+
     private val bugImages = intArrayOf(
         R.drawable.bug1,
         R.drawable.bug2,
@@ -52,6 +56,8 @@ class GameFragment : Fragment() {
         btnStop = view.findViewById(R.id.btnStop)
         gameField = view.findViewById(R.id.gameField)
 
+        prefs = requireContext().getSharedPreferences("game_settings", Context.MODE_PRIVATE)
+
         btnStart.setOnClickListener { startGame() }
         btnStop.setOnClickListener { stopGame() }
 
@@ -63,15 +69,23 @@ class GameFragment : Fragment() {
     }
 
     private fun startGame() {
+        val duration = prefs.getInt("key_duration", 60)
+        val speed = prefs.getInt("key_speed", 5)
+        val maxBugs = prefs.getInt("key_cockroaches", 10)
+
+        val spawnDelay = (2000 - (speed * 150)).toLong()
+
         score = 0
-        timeLeft = 60
+        timeLeft = duration
         updateUI()
         clearField()
 
         gameJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
-                spawnBug()
-                delay(1000)
+                if (gameField.childCount < maxBugs) {
+                    spawnBug()
+                }
+                delay(spawnDelay)
             }
         }
 
@@ -88,8 +102,10 @@ class GameFragment : Fragment() {
     private fun stopGame() {
         gameJob?.cancel()
         timerJob?.cancel()
+
         clearField()
-        Toast.makeText(requireContext(), "Игра остановлена. Счет: $score", Toast.LENGTH_SHORT).show()
+
+        Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG).show()
     }
 
     private fun addScore(points: Int) {
@@ -103,6 +119,11 @@ class GameFragment : Fragment() {
     }
 
     private fun clearField() {
+        for (i in 0 until gameField.childCount) {
+            val child = gameField.getChildAt(i)
+            child.animate().cancel()
+            child.clearAnimation()
+        }
         gameField.removeAllViews()
     }
 
@@ -130,7 +151,6 @@ class GameFragment : Fragment() {
         }
 
         gameField.addView(bugImage)
-
         moveBug(bugImage, bugSize)
     }
 
@@ -162,5 +182,11 @@ class GameFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         stopGame()
+    }
+
+    fun pauseGame() {
+        if (gameJob?.isActive == true || timerJob?.isActive == true) {
+            stopGame()
+        }
     }
 }
