@@ -59,32 +59,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Интервал появления бонусов (сек)"
-            android:textSize="16sp"/>
-        <SeekBar
-            android:id="@+id/seekBarBonusInterval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="60"
-            android:progress="15"/>
-        <TextView
-            android:id="@+id/textBonusValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="15"
-            android:textSize="14sp"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:text="Длительность раунда (сек)"
             android:textSize="16sp"/>
         <SeekBar
             android:id="@+id/seekBarRoundDuration"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="300"
+            android:max="120"
             android:progress="60"/>
         <TextView
             android:id="@+id/textDurationValue"
