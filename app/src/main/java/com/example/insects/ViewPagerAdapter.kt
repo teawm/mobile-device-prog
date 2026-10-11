@@ -6,11 +6,17 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class ViewPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
 
+    var gameFragment: GameFragment? = null
+
     override fun getItemCount(): Int = 5
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> GameFragment()
+            0 -> {
+                val fragment = GameFragment()
+                gameFragment = fragment
+                fragment
+            }
             1 -> RegistrationFragment()
             2 -> RulesFragment()
             3 -> AuthorsFragment()
