@@ -15,17 +15,16 @@ class MainActivity : AppCompatActivity() {
         val viewPager = findViewById<ViewPager2>(R.id.viewPager)
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
 
-        // Устанавливаем адаптер
         val adapter = ViewPagerAdapter(this)
         viewPager.adapter = adapter
 
-        // Связываем вкладки с фрагментами и задаем им названия
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when (position) {
-                0 -> tab.text = "Регистрация"
-                1 -> tab.text = "Правила"
-                2 -> tab.text = "Авторы"
-                3 -> tab.text = "Настройки"
+                0 -> tab.text = "Игра"
+                1 -> tab.text = "Регистрация"
+                2 -> tab.text = "Правила"
+                3 -> tab.text = "Авторы"
+                4 -> tab.text = "Настройки"
             }
         }.attach()
     }
