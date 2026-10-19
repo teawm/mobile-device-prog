@@ -8,7 +8,7 @@ class ViewPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapte
 
     var gameFragment: GameFragment? = null
 
-    override fun getItemCount(): Int = 5
+    override fun getItemCount(): Int = 6
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
@@ -21,6 +21,7 @@ class ViewPagerAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapte
             2 -> RulesFragment()
             3 -> AuthorsFragment()
             4 -> SettingsFragment()
+            5 -> RecordsFragment()
             else -> GameFragment()
         }
     }
