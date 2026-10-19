@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [PlayerEntity::class, GameSessionEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
