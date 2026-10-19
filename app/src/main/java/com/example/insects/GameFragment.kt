@@ -31,8 +31,12 @@ class GameFragment : Fragment() {
     private var timeLeft = 60
     private var gameJob: Job? = null
     private var timerJob: Job? = null
-
     private lateinit var prefs: SharedPreferences
+    private lateinit var repository: GameRepository
+
+    private var hits = 0
+    private var misses = 0
+    private var gameStartedAt: Long = 0
 
     private val bugImages = intArrayOf(
         R.drawable.bug1,
@@ -50,33 +54,44 @@ class GameFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        prefs = requireContext().getSharedPreferences("game_settings", Context.MODE_PRIVATE)
+        repository = GameRepository(requireContext())
+
         textScore = view.findViewById(R.id.textScore)
         textTime = view.findViewById(R.id.textTime)
         btnStart = view.findViewById(R.id.btnStart)
         btnStop = view.findViewById(R.id.btnStop)
         gameField = view.findViewById(R.id.gameField)
 
-        prefs = requireContext().getSharedPreferences("game_settings", Context.MODE_PRIVATE)
-
         btnStart.setOnClickListener { startGame() }
         btnStop.setOnClickListener { stopGame() }
 
         gameField.setOnClickListener {
             if (gameJob?.isActive == true) {
+                misses++
                 addScore(-1)
             }
         }
     }
 
     private fun startGame() {
+        val playerId = prefs.getInt("current_player_id", -1)
+        if (playerId == -1) {
+            Toast.makeText(requireContext(), "Сначала зарегистрируйте игрока!", Toast.LENGTH_LONG).show()
+            return
+        }
+
         val duration = prefs.getInt("key_duration", 60)
         val speed = prefs.getInt("key_speed", 5)
         val maxBugs = prefs.getInt("key_cockroaches", 10)
-
         val spawnDelay = (2000 - (speed * 150)).toLong()
 
         score = 0
         timeLeft = duration
+        hits = 0
+        misses = 0
+        gameStartedAt = System.currentTimeMillis()
+
         updateUI()
         clearField()
 
@@ -102,10 +117,30 @@ class GameFragment : Fragment() {
     private fun stopGame() {
         gameJob?.cancel()
         timerJob?.cancel()
-
         clearField()
 
-        Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG).show()
+        val playerId = prefs.getInt("current_player_id", -1)
+        if (playerId != -1) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val difficultyLevel = prefs.getInt("key_difficulty", 3)
+                val duration = ((System.currentTimeMillis() - gameStartedAt) / 1000).toInt()
+
+                val session = GameSessionEntity(
+                    playerId = playerId,
+                    score = score,
+                    difficulty = "LEVEL_$difficultyLevel", // <-- ИСПРАВЛЕНО: теперь префикс добавляется только один раз
+                    hits = hits,
+                    misses = misses,
+                    durationSeconds = duration,
+                    timestamp = System.currentTimeMillis()
+                )
+
+                repository.insertSession(session)
+                Toast.makeText(requireContext(), "Результат сохранен! Счет: $score", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun addScore(points: Int) {
@@ -129,7 +164,6 @@ class GameFragment : Fragment() {
 
     private fun spawnBug() {
         val bugImage = ImageView(requireContext())
-
         val randomImageIndex = Random.nextInt(bugImages.size)
         bugImage.setImageResource(bugImages[randomImageIndex])
 
@@ -145,6 +179,7 @@ class GameFragment : Fragment() {
 
         bugImage.setOnClickListener {
             if (gameJob?.isActive == true) {
+                hits++
                 addScore(10)
                 gameField.removeView(it)
             }
