@@ -92,7 +92,7 @@ class RegistrationFragment : Fragment() {
 
         spinnerPlayers.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (playersList.isNotEmpty() && position > 0) { // position 0 = "Выберите игрока..."
+                if (playersList.isNotEmpty() && position > 0) {
                     val selectedPlayer = playersList[position - 1]
                     prefs.edit()
                         .putInt("current_player_id", selectedPlayer.id)
