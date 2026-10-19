@@ -6,7 +6,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class GameRepository(context: Context) {
+
     private val dao = AppDatabase.getDatabase(context).gameDao()
+
+    fun getAllPlayers(): Flow<List<PlayerEntity>> {
+        throw NotImplementedError("Используем suspend getPlayerByName и insertPlayer")
+    }
 
     suspend fun getAllPlayersList(): List<PlayerEntity> = withContext(Dispatchers.IO) {
         dao.getAllPlayersList()
