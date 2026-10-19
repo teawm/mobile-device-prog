@@ -12,6 +12,53 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Имя игрока (для таблицы рекордов)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"/>
+
+        <EditText
+            android:id="@+id/editTextPlayerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:hint="Введите никнейм"
+            android:inputType="textPersonName"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/textCurrentPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Текущий игрок: не выбран"
+            android:textColor="#00796B"
+            android:textStyle="italic"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Или выберите существующего игрока:"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"/>
+
+        <Spinner
+            android:id="@+id/spinnerPlayers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btnRefreshPlayers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Обновить список игроков"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="@string/label_name"
             android:textSize="16sp"
             android:layout_marginTop="8dp"/>
@@ -84,7 +131,7 @@
             android:id="@+id/textViewDifficultyValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="5"
+            android:text="3"
             android:textSize="14sp"
             android:layout_marginBottom="16dp"/>
 

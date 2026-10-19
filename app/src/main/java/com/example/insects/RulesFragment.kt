@@ -21,10 +21,8 @@ class RulesFragment : Fragment() {
 
         val webView = view.findViewById<WebView>(R.id.webViewRules)
 
-        // Разрешаем выполнение JavaScript
         webView.settings.javaScriptEnabled = true
 
-        // Загружаем HTML-файл из папки res/raw
         webView.loadUrl("file:///android_res/raw/rules.html")
     }
 }

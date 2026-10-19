@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
                 2 -> tab.text = "Правила"
                 3 -> tab.text = "Авторы"
                 4 -> tab.text = "Настройки"
+                5 -> tab.text = "Рекорды"
             }
         }.attach()
     }
