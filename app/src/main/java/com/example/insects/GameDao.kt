@@ -3,6 +3,7 @@ package com.example.insects
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,6 +13,12 @@ interface GameDao {
 
     @Insert
     suspend fun insertSession(session: GameSessionEntity)
+
+    @Query("SELECT * FROM sessions WHERE playerId = :playerId AND difficulty = :difficulty ORDER BY score DESC LIMIT 1")
+    suspend fun getSessionByPlayerAndDifficulty(playerId: Int, difficulty: String): GameSessionEntity?
+
+    @Update
+    suspend fun updateSession(session: GameSessionEntity)
 
     @Query("SELECT * FROM players WHERE name = :normalizedName LIMIT 1")
     suspend fun getPlayerByName(normalizedName: String): PlayerEntity?

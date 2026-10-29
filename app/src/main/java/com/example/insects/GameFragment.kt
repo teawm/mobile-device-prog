@@ -128,18 +128,29 @@ class GameFragment : Fragment() {
                 val session = GameSessionEntity(
                     playerId = playerId,
                     score = score,
-                    difficulty = "LEVEL_$difficultyLevel", // <-- ИСПРАВЛЕНО: теперь префикс добавляется только один раз
+                    difficulty = "LEVEL_$difficultyLevel",
                     hits = hits,
                     misses = misses,
                     durationSeconds = duration,
                     timestamp = System.currentTimeMillis()
                 )
 
-                repository.insertSession(session)
-                Toast.makeText(requireContext(), "Результат сохранен! Счет: $score", Toast.LENGTH_LONG).show()
+                // ИЗМЕНЕНО: insertSession → insertOrUpdateSession
+                repository.insertOrUpdateSession(session)
+
+                // Дополнительная информация для пользователя
+                val existingSession =
+                    repository.getSessionByPlayerAndDifficulty(playerId, session.difficulty)
+                val message = if (existingSession != null && existingSession.score < score) {
+                    "Новый рекорд! Счет: $score"
+                } else {
+                    "Результат сохранен! Счет: $score"
+                }
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
             }
         } else {
-            Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG)
+                .show()
         }
     }
 
