@@ -2,6 +2,11 @@ package com.example.insects
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.media.SoundPool
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,9 +22,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.random.Random
 
-class GameFragment : Fragment() {
+class GameFragment : Fragment(), SensorEventListener {
 
     private lateinit var textScore: TextView
     private lateinit var textTime: TextView
@@ -31,12 +37,23 @@ class GameFragment : Fragment() {
     private var timeLeft = 60
     private var gameJob: Job? = null
     private var timerJob: Job? = null
+    private var bonusJob: Job? = null
     private lateinit var prefs: SharedPreferences
     private lateinit var repository: GameRepository
 
     private var hits = 0
     private var misses = 0
     private var gameStartedAt: Long = 0
+
+    private var sensorManager: SensorManager? = null
+    private var accelerometer: Sensor? = null
+    private var soundPool: SoundPool? = null
+    private var bugSoundId: Int = 0
+
+    private var isBonusActive = false
+    private var currentBonusView: ImageView? = null
+    private var gravityX = 0f
+    private var gravityY = 0f
 
     private val bugImages = intArrayOf(
         R.drawable.bug1,
@@ -62,6 +79,12 @@ class GameFragment : Fragment() {
         btnStart = view.findViewById(R.id.btnStart)
         btnStop = view.findViewById(R.id.btnStop)
         gameField = view.findViewById(R.id.gameField)
+
+        sensorManager = requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        soundPool = SoundPool.Builder().setMaxStreams(1).build()
+        bugSoundId = soundPool?.load(requireContext(), R.raw.insect_sound, 1) ?: 0
 
         btnStart.setOnClickListener { startGame() }
         btnStop.setOnClickListener { stopGame() }
@@ -91,9 +114,14 @@ class GameFragment : Fragment() {
         hits = 0
         misses = 0
         gameStartedAt = System.currentTimeMillis()
+        isBonusActive = false
 
         updateUI()
         clearField()
+
+        accelerometer?.let {
+            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+        }
 
         gameJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
@@ -112,12 +140,24 @@ class GameFragment : Fragment() {
             }
             if (timeLeft <= 0) stopGame()
         }
+
+        bonusJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(15000)
+            while (isActive) {
+                spawnBonus()
+                delay(15000)
+            }
+        }
     }
 
     private fun stopGame() {
         gameJob?.cancel()
         timerJob?.cancel()
+        bonusJob?.cancel()
         clearField()
+
+        sensorManager?.unregisterListener(this)
+        isBonusActive = false
 
         val playerId = prefs.getInt("current_player_id", -1)
         if (playerId != -1) {
@@ -135,22 +175,20 @@ class GameFragment : Fragment() {
                     timestamp = System.currentTimeMillis()
                 )
 
-                // ИЗМЕНЕНО: insertSession → insertOrUpdateSession
+                val existingSession = repository.getSessionByPlayerAndDifficulty(playerId, session.difficulty)
+                val isNewRecord = existingSession == null || session.score > existingSession.score
+
                 repository.insertOrUpdateSession(session)
 
-                // Дополнительная информация для пользователя
-                val existingSession =
-                    repository.getSessionByPlayerAndDifficulty(playerId, session.difficulty)
-                val message = if (existingSession != null && existingSession.score < score) {
-                    "Новый рекорд! Счет: $score"
+                val message = if (isNewRecord) {
+                    "🏆 Новый рекорд! Счет: $score"
                 } else {
                     "Результат сохранен! Счет: $score"
                 }
                 Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
             }
         } else {
-            Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG)
-                .show()
+            Toast.makeText(requireContext(), "Игра окончена! Счет: $score", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -171,6 +209,7 @@ class GameFragment : Fragment() {
             child.clearAnimation()
         }
         gameField.removeAllViews()
+        currentBonusView = null
     }
 
     private fun spawnBug() {
@@ -203,31 +242,136 @@ class GameFragment : Fragment() {
     private fun moveBug(bugImage: ImageView, bugSize: Int) {
         if (bugImage.parent == null) return
 
-        val newX = Random.nextFloat() * (gameField.width - bugSize)
-        val newY = Random.nextFloat() * (gameField.height - bugSize)
+        val fieldWidth = gameField.width
+        val fieldHeight = gameField.height
+
+        val (targetX, targetY) = if (isBonusActive) {
+            val newX = (bugImage.x + gravityX * 150f).coerceIn(0f, (fieldWidth - bugSize).toFloat())
+            val newY = (bugImage.y + gravityY * 150f).coerceIn(0f, (fieldHeight - bugSize).toFloat())
+            newX to newY
+        } else {
+            val newX = Random.nextFloat() * (fieldWidth - bugSize)
+            val newY = Random.nextFloat() * (fieldHeight - bugSize)
+            newX to newY
+        }
 
         val currentX = bugImage.x
         val currentY = bugImage.y
-        val deltaX = newX - currentX
-        val deltaY = newY - currentY
-        val angle = Math.toDegrees(Math.atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
+        val deltaX = targetX - currentX
+        val deltaY = targetY - currentY
 
-        val rotationCorrection = 90f
-        bugImage.rotation = angle + rotationCorrection
+        if (abs(deltaX) > 1f || abs(deltaY) > 1f) {
+            val angle = Math.toDegrees(Math.atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
+            val rotationCorrection = 90f
+            bugImage.rotation = angle + rotationCorrection
+        }
+
+        val duration = if (isBonusActive) 800L else 2000L
 
         bugImage.animate()
-            .x(newX)
-            .y(newY)
-            .setDuration(2000)
+            .x(targetX)
+            .y(targetY)
+            .setDuration(duration)
             .withEndAction {
                 moveBug(bugImage, bugSize)
             }
             .start()
     }
 
+    private fun spawnBonus() {
+        if (gameJob?.isActive != true) return
+        if (currentBonusView != null) return
+
+        val bonusImage = ImageView(requireContext())
+        bonusImage.setImageResource(R.drawable.buggold)
+
+        val bonusSize = 120
+        val layoutParams = FrameLayout.LayoutParams(bonusSize, bonusSize)
+        bonusImage.layoutParams = layoutParams
+
+        val startX = Random.nextFloat() * (gameField.width - bonusSize)
+        val startY = Random.nextFloat() * (gameField.height - bonusSize)
+
+        bonusImage.x = startX
+        bonusImage.y = startY
+
+        bonusImage.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(500)
+            .withEndAction {
+                bonusImage.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(500)
+                    .start()
+            }
+            .start()
+
+        bonusImage.setOnClickListener {
+            activateBonus()
+            gameField.removeView(it)
+            currentBonusView = null
+        }
+
+        gameField.addView(bonusImage)
+        currentBonusView = bonusImage
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(5000)
+            if (bonusImage.parent != null) {
+                gameField.removeView(bonusImage)
+                if (currentBonusView == bonusImage) {
+                    currentBonusView = null
+                }
+            }
+        }
+    }
+
+    private fun activateBonus() {
+        isBonusActive = true
+
+        soundPool?.play(bugSoundId, 1f, 1f, 1, 0, 1f)
+
+        Toast.makeText(requireContext(), "🪲 Бонус! Жуки реагируют на наклон!", Toast.LENGTH_SHORT).show()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(5000)
+            isBonusActive = false
+            if (gameJob?.isActive == true) {
+                Toast.makeText(requireContext(), "Действие бонуса закончилось", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+            gravityX = (event.values[0] / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
+            gravityY = (event.values[1] / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
     override fun onDestroyView() {
         super.onDestroyView()
         stopGame()
+        soundPool?.release()
+        soundPool = null
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager?.unregisterListener(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (gameJob?.isActive == true) {
+            accelerometer?.let {
+                sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            }
+        }
     }
 
     fun pauseGame() {
