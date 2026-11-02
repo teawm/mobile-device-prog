@@ -7,6 +7,8 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.media.SoundPool
+import android.view.animation.LinearInterpolator
+import kotlin.math.abs
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,7 +24,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 import kotlin.random.Random
 
 class GameFragment : Fragment(), SensorEventListener {
@@ -54,6 +55,7 @@ class GameFragment : Fragment(), SensorEventListener {
     private var currentBonusView: ImageView? = null
     private var gravityX = 0f
     private var gravityY = 0f
+
 
     private val bugImages = intArrayOf(
         R.drawable.bug1,
@@ -115,6 +117,8 @@ class GameFragment : Fragment(), SensorEventListener {
         misses = 0
         gameStartedAt = System.currentTimeMillis()
         isBonusActive = false
+        gravityX = 0f
+        gravityY = 0f
 
         updateUI()
         clearField()
@@ -181,7 +185,7 @@ class GameFragment : Fragment(), SensorEventListener {
                 repository.insertOrUpdateSession(session)
 
                 val message = if (isNewRecord) {
-                    "🏆 Новый рекорд! Счет: $score"
+                    "Новый рекорд! Счет: $score"
                 } else {
                     "Результат сохранен! Счет: $score"
                 }
@@ -245,33 +249,40 @@ class GameFragment : Fragment(), SensorEventListener {
         val fieldWidth = gameField.width
         val fieldHeight = gameField.height
 
-        val (targetX, targetY) = if (isBonusActive) {
-            val newX = (bugImage.x + gravityX * 150f).coerceIn(0f, (fieldWidth - bugSize).toFloat())
-            val newY = (bugImage.y + gravityY * 150f).coerceIn(0f, (fieldHeight - bugSize).toFloat())
-            newX to newY
+        val targetX: Float
+        val targetY: Float
+        val duration: Long
+        val interpolator: android.view.animation.Interpolator
+
+        if (isBonusActive) {
+            val speedMultiplier = 300f
+            targetX = (bugImage.x + gravityX * speedMultiplier).coerceIn(0f, (fieldWidth - bugSize).toFloat())
+            targetY = (bugImage.y + gravityY * speedMultiplier).coerceIn(0f, (fieldHeight - bugSize).toFloat())
+
+            duration = 100L
+            interpolator = LinearInterpolator()
         } else {
-            val newX = Random.nextFloat() * (fieldWidth - bugSize)
-            val newY = Random.nextFloat() * (fieldHeight - bugSize)
-            newX to newY
+            targetX = Random.nextFloat() * (fieldWidth - bugSize)
+            targetY = Random.nextFloat() * (fieldHeight - bugSize)
+            duration = 2000L
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
         }
 
-        val currentX = bugImage.x
-        val currentY = bugImage.y
-        val deltaX = targetX - currentX
-        val deltaY = targetY - currentY
+        val deltaX = targetX - bugImage.x
+        val deltaY = targetY - bugImage.y
 
         if (abs(deltaX) > 1f || abs(deltaY) > 1f) {
             val angle = Math.toDegrees(Math.atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
-            val rotationCorrection = 90f
-            bugImage.rotation = angle + rotationCorrection
+            bugImage.rotation = angle + 90f
         }
 
-        val duration = if (isBonusActive) 800L else 2000L
+        bugImage.animate().cancel()
 
         bugImage.animate()
             .x(targetX)
             .y(targetY)
             .setDuration(duration)
+            .setInterpolator(interpolator)
             .withEndAction {
                 moveBug(bugImage, bugSize)
             }
@@ -333,13 +344,25 @@ class GameFragment : Fragment(), SensorEventListener {
 
         soundPool?.play(bugSoundId, 1f, 1f, 1, 0, 1f)
 
-        Toast.makeText(requireContext(), "🪲 Бонус! Жуки реагируют на наклон!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Бонус активирован! Жуки падают!", Toast.LENGTH_SHORT).show()
+
+        applyGravityToAllBugs()
 
         viewLifecycleOwner.lifecycleScope.launch {
             delay(5000)
             isBonusActive = false
             if (gameJob?.isActive == true) {
-                Toast.makeText(requireContext(), "Действие бонуса закончилось", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Бонус закончился", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun applyGravityToAllBugs() {
+        for (i in 0 until gameField.childCount) {
+            val child = gameField.getChildAt(i)
+            if (child is ImageView && child != currentBonusView) {
+                child.animate().cancel()
+                moveBug(child, child.width)
             }
         }
     }
