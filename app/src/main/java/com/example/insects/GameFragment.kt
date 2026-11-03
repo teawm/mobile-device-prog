@@ -294,7 +294,7 @@ class GameFragment : Fragment(), SensorEventListener {
         if (currentBonusView != null) return
 
         val bonusImage = ImageView(requireContext())
-        bonusImage.setImageResource(R.drawable.buggold)
+        bonusImage.setImageResource(R.drawable.bugbonus)
 
         val bonusSize = 120
         val layoutParams = FrameLayout.LayoutParams(bonusSize, bonusSize)
@@ -369,7 +369,7 @@ class GameFragment : Fragment(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-            gravityX = (event.values[0] / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
+            gravityX = -(event.values[0] / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
             gravityY = (event.values[1] / SensorManager.GRAVITY_EARTH).coerceIn(-1f, 1f)
         }
     }
