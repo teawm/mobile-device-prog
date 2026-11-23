@@ -1,12 +1,10 @@
 package com.example.insects
 
-import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-class GameRepository(context: Context) {
-    private val dao = AppDatabase.getDatabase(context).gameDao()
+class GameRepository(private val dao: GameDao) {
 
     suspend fun getAllPlayersList(): List<PlayerEntity> = withContext(Dispatchers.IO) {
         dao.getAllPlayersList()
