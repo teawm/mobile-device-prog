@@ -11,6 +11,7 @@
     <string name="label_zodiac">Ваш знак зодиака:</string>
     <string name="button_submit">Сохранить и показать</string>
     <string name="result_placeholder">Здесь появится результат...</string>
+    <string name="widget_description">Курс золота ЦБ РФ</string>
 
     <string-array name="courses_array">
         <item>1 курс</item>
