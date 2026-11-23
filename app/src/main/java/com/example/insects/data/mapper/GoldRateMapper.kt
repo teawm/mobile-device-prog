@@ -23,10 +23,8 @@ fun MetallRecord.toGoldRateSnapshot(fetchTime: Long): GoldRateSnapshot? {
         BigDecimal(normalizedPrice)
             .movePointRight(2)
             .setScale(0, RoundingMode.HALF_UP)
-            .toLong()
-    } catch (e: NumberFormatException) {
-        return null
-    } catch (e: ArithmeticException) {
+            .longValueExact()
+    } catch (e: Exception) {
         return null
     }
 
